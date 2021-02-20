@@ -1,9 +1,18 @@
 package com.example.visin;
+import com.example.visin.OpenCvCamera;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Collections;
+import java.util.List;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import android.content.Intent;
 import android.content.DialogInterface;
@@ -15,46 +24,97 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import  android.widget.ImageView;
 import android.widget.Toast;
+import android.Manifest;
+import android.app.Activity;
+import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.os.Bundle;
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.SurfaceView;
+import android.view.View;
+import android.view.WindowManager;
 
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
+import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
 
-public class MainActivity extends AppCompatActivity implements CvCameraViewListener2 {
+public class MainActivity extends AppCompatActivity {
 
     private  final String CARPETA_RAIZ="misImagenesPrueba/";
     private  final String RUTA_IMAGEN = CARPETA_RAIZ + "misFotos";
 
+    private OpenCvCamera mOpenCvCameraView;
+    private boolean              mIsJavaCamera = true;
+    private MenuItem             mItemSwitchCamera = null;
+    private Mat                    mRgba;
+    private Mat                    mGray;
+
     ImageView imagen;
     String path;
 
-    private static String TAG = "MainActivity";
+    private static final String TAG = "OCVSample::Activity";
 
-    static
-    {
-        if(OpenCVLoader.initDebug()){
-            Log.d(TAG, "OpenCV init");
-        }else{
-            Log.d(TAG, "OpenCv NO init");
+
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case LoaderCallbackInterface.SUCCESS:
+                {
+                    Log.i(TAG, "OpenCV loaded successfully");
+                    mOpenCvCameraView.enableView();
+                } break;
+                default:
+                {
+                    super.onManagerConnected(status);
+                } break;
+            }
         }
+    };
+
+    public MainActivity() {
+        Log.i(TAG, "Instantiated new " + this.getClass());
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.i(TAG, "called onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         imagen = (ImageView) findViewById(R.id.imageId);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            // here, Permission is not granted
+            ActivityCompat.requestPermissions(this, new String[] {android.Manifest.permission.CAMERA}, 50);
+        }
+        setContentView(R.layout.activity_main);
+        System.loadLibrary("mixed_sample");
+
+        mOpenCvCameraView = (OpenCvCamera) findViewById(R.id.tutorial3_activity_java_surface_view);
+
+        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
+
+        mOpenCvCameraView.setCvCameraViewListener((CameraBridgeViewBase.CvCameraViewListener) this);
+
     }
 
     public void onClick(View view) {
@@ -140,18 +200,5 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 
     }
 
-    @Override
-    public void onCameraViewStarted(int width, int height) {
 
-    }
-
-    @Override
-    public void onCameraViewStopped() {
-
-    }
-
-    @Override
-    public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        return null;
-    }
 }
