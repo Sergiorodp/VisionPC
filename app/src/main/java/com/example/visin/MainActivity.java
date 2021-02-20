@@ -62,6 +62,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     private OpenCvCamera mOpenCvCameraView;
     private boolean              mIsJavaCamera = true;
     private MenuItem             mItemSwitchCamera = null;
+
+
+
+
     private Mat                    mRgba;
     private Mat                    mGray;
 
@@ -69,7 +73,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     String path;
 
     private static final String TAG = "OCVSample::Activity";
-
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -97,7 +100,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         Log.i(TAG, "called onCreate");
         super.onCreate(savedInstanceState);
 
-
         //imagen = (ImageView) findViewById(R.id.imageId);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -109,7 +111,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         //setContentView(R.layout.HelloOpenCvLayout);
         setContentView(R.layout.activity_main);
 
-        //mOpenCvCameraView = (OpenCvCamera) findViewById(R.id.tutorial3_activity_java_surface_view);
         mOpenCvCameraView = (OpenCvCamera) findViewById(R.id.tutorial3_activity_java_surface_view);
 
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
@@ -155,7 +156,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        return inputFrame.rgba();
+        Mat frame = inputFrame.rgba();
+        Imgproc.cvtColor(frame,frame,Imgproc.COLOR_BGR2GRAY);
+        return frame;
     }
 
    // public native void FindFeatures(long matAddrGr, long matAddrRgba);
@@ -164,7 +167,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     public void onClick(View view) {
         cargarImagen();
     }
-
 
     private void cargarImagen() {
         final CharSequence[] opciones = {"Tomar Foto","Cargar Imagen","Cancelar"};
@@ -211,7 +213,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
                     MediaScannerConnection.scanFile(this, new String[]{path}, null, new MediaScannerConnection.OnScanCompletedListener() {
                         @Override
                         public void onScanCompleted(String path, Uri uri) {
-                            Log.i("Ruta e lamacenamiento","path: " + path);
+                            Log.i("Ruta de lamacenamiento","path: " + path);
                         }
                     });
 
