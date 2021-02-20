@@ -55,7 +55,7 @@ import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements CvCameraViewListener2{
 
     private  final String CARPETA_RAIZ="misImagenesPrueba/";
     private  final String RUTA_IMAGEN = CARPETA_RAIZ + "misFotos";
@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        imagen = (ImageView) findViewById(R.id.imageId);
+        //imagen = (ImageView) findViewById(R.id.imageId);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
@@ -113,13 +113,60 @@ public class MainActivity extends AppCompatActivity {
 
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 
-        mOpenCvCameraView.setCvCameraViewListener((CameraBridgeViewBase.CvCameraViewListener) this);
+        mOpenCvCameraView.setCvCameraViewListener(this);
 
     }
 
+
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+        if (mOpenCvCameraView != null)
+            mOpenCvCameraView.disableView();
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+        if (!OpenCVLoader.initDebug()) {
+            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
+        } else {
+            Log.d(TAG, "OpenCV library found inside package. Using it!");
+            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+        }
+    }
+
+    public void onDestroy() {
+        super.onDestroy();
+        if (mOpenCvCameraView != null)
+            mOpenCvCameraView.disableView();
+    }
+
+    public void onCameraViewStarted(int width, int height) {
+
+    }
+
+    public void onCameraViewStopped() {
+
+    }
+
+    public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+        mRgba = inputFrame.rgba();
+        mGray = inputFrame.gray();
+        FindFeatures(mGray.getNativeObjAddr(), mRgba.getNativeObjAddr());
+        return mRgba;
+    }
+
+    public native void FindFeatures(long matAddrGr, long matAddrRgba);
+
+    /* inicio comentado
     public void onClick(View view) {
         cargarImagen();
     }
+
 
     private void cargarImagen() {
         final CharSequence[] opciones = {"Tomar Foto","Cargar Imagen","Cancelar"};
@@ -149,6 +196,8 @@ public class MainActivity extends AppCompatActivity {
 
         alertOpciones.show();
     }
+
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -199,6 +248,7 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(intent,20);
 
     }
+    */
 
 
 }
